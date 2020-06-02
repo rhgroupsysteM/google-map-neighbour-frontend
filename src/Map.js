@@ -9,15 +9,10 @@ import {
   KmlLayer,
 } from "react-google-maps";
 import test from "./kml/test";
+import test2 from "./kml/test2";
 import * as kmlFile from "./kml/CR.kml";
 // const AnyReactComponent = ({ text }) => <div>{text}</div>;
 
-const triangleCoords = [
-  { lat: 25.774, lng: -80.19 },
-  { lat: 18.466, lng: -66.118 },
-  { lat: 32.321, lng: -64.757 },
-  { lat: 25.774, lng: -80.19 },
-];
 const coords = [
   { lat: 29.047487, lng: 41.023164 },
   { lat: 29.0459633, lng: 41.0212904 },
@@ -46,25 +41,50 @@ const coords = [
 const reversedCoords = coords.map((ll) => {
   return { lat: ll.lng, lng: ll.lat };
 });
+
+const getMiddleCoordinate = (arrCoordinate) => {
+  return arrCoordinate[Math.floor(arrCoordinate.length / 2)];
+};
+
+const getArrCoordinateLastIndex = (selectedPostCodes) => {
+  if (selectedPostCodes.length > 0) {
+    return selectedPostCodes.length;
+  } else {
+    return {
+      lat: 53.4586,
+      lng: -2.18974,
+    };
+  }
+};
 // -0.03566,51.35469
 const MapWithAMarker = withScriptjs(
   withGoogleMap((props) => (
     <GoogleMap
+      key={props.key}
       defaultZoom={11}
-      defaultCenter={{ lat: 51.35469, lng: -0.03566 }}
+      // defaultCenter={{
+      //   lat: 51.47179,
+      //   lng: -0.38309,
+      // }}
+      defaultCenter={
+        props.defaultCoordinates
+          ? props.defaultCoordinates
+          : { lat: 51.47179, lng: -0.38309 }
+      }
     >
-      {console.log("test", kmlFile.toString())}
-      {/* <Marker position={{ lat: 0.04131, lng: 51.33294 }} /> */}
-      <Polygon
-        path={test}
-        options={{
-          fillColor: "#000",
-          fillOpacity: 0.4,
-          strokeColor: "#000",
-          strokeOpacity: 1,
-          strokeWeight: 1,
-        }}
-      />
+      {props.selectedPostCodes.map((postCode) => (
+        <Polygon
+          // key={postCode.properties.name}
+          path={postCode}
+          options={{
+            fillColor: "#66ff66",
+            fillOpacity: 0.4,
+            strokeColor: "#66ff66",
+            strokeOpacity: 1,
+            strokeWeight: 1,
+          }}
+        />
+      ))}
       {/* <KmlLayer
         url="https://github.com/missinglink/uk-postcode-polygons/blob/master/kml/AB.kml"
         options={{ preserveViewport: true }}
@@ -73,12 +93,17 @@ const MapWithAMarker = withScriptjs(
   ))
 );
 
-const SimpleMap = () => (
+const SimpleMap = ({ selectedPostCodes, key, defaultCoordinates }) => (
   <MapWithAMarker
+    key={key}
     googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyBPUiSGYIljWpEJ0iUAJbusbdPly-U4Z6Y&v=3.exp&libraries=geometry,drawing,places"
     loadingElement={<div style={{ height: `100%` }} />}
-    containerElement={<div style={{ height: `400px` }} />}
+    containerElement={<div style={{ height: `800px` }} />}
     mapElement={<div style={{ height: `100%` }} />}
+    selectedPostCodes={selectedPostCodes.map(
+      (properties) => properties.coordinates
+    )}
+    defaultCoordinates={defaultCoordinates}
   />
 );
 //AIzaSyBPUiSGYIljWpEJ0iUAJbusbdPly-U4Z6Y
