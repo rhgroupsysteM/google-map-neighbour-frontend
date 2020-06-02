@@ -37,25 +37,6 @@ const coords = [
   { lat: 29.052014, lng: 41.018198 },
   { lat: 29.047487, lng: 41.023164 },
 ];
-
-const reversedCoords = coords.map((ll) => {
-  return { lat: ll.lng, lng: ll.lat };
-});
-
-const getMiddleCoordinate = (arrCoordinate) => {
-  return arrCoordinate[Math.floor(arrCoordinate.length / 2)];
-};
-
-const getArrCoordinateLastIndex = (selectedPostCodes) => {
-  if (selectedPostCodes.length > 0) {
-    return selectedPostCodes.length;
-  } else {
-    return {
-      lat: 53.4586,
-      lng: -2.18974,
-    };
-  }
-};
 // -0.03566,51.35469
 const MapWithAMarker = withScriptjs(
   withGoogleMap((props) => (
@@ -72,10 +53,10 @@ const MapWithAMarker = withScriptjs(
           : { lat: 51.47179, lng: -0.38309 }
       }
     >
-      {props.selectedPostCodes.map((postCode) => (
+      {props.selectedPostCodes.length > 0 && (
         <Polygon
           // key={postCode.properties.name}
-          path={postCode}
+          paths={props.selectedPostCodes}
           options={{
             fillColor: "#66ff66",
             fillOpacity: 0.4,
@@ -84,7 +65,19 @@ const MapWithAMarker = withScriptjs(
             strokeWeight: 1,
           }}
         />
-      ))}
+      )}
+      {props.disabledPostcodes.length > 0 && (
+        <Polygon
+          paths={props.disabledPostcodes}
+          options={{
+            fillColor: "#f02137",
+            fillOpacity: 0.4,
+            strokeColor: "#f02137",
+            strokeOpacity: 1,
+            strokeWeight: 1,
+          }}
+        />
+      )}
       {/* <KmlLayer
         url="https://github.com/missinglink/uk-postcode-polygons/blob/master/kml/AB.kml"
         options={{ preserveViewport: true }}
@@ -93,7 +86,12 @@ const MapWithAMarker = withScriptjs(
   ))
 );
 
-const SimpleMap = ({ selectedPostCodes, key, defaultCoordinates }) => (
+const SimpleMap = ({
+  selectedPostCodes,
+  key,
+  defaultCoordinates,
+  disabledPostcodes,
+}) => (
   <MapWithAMarker
     key={key}
     googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyBPUiSGYIljWpEJ0iUAJbusbdPly-U4Z6Y&v=3.exp&libraries=geometry,drawing,places"
@@ -102,6 +100,9 @@ const SimpleMap = ({ selectedPostCodes, key, defaultCoordinates }) => (
     mapElement={<div style={{ height: `100%` }} />}
     selectedPostCodes={selectedPostCodes.map(
       (properties) => properties.coordinates
+    )}
+    disabledPostcodes={disabledPostcodes.map(
+      (postCode) => postCode.coordinates
     )}
     defaultCoordinates={defaultCoordinates}
   />

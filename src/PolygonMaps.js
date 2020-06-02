@@ -41,6 +41,8 @@ export default function PolygonMaps(props) {
   let [postCodes, setPostCodes] = useState([]);
   let [selectedPostCodes, setSelectedPostCodes] = useState([]);
 
+  let [disabledPostcodes, setDisabledPostcodes] = useState([]);
+
   const getLastIndexID = (selPostCodes) => {
     if (selPostCodes.length - 1 < 0) {
       return 0;
@@ -88,6 +90,12 @@ export default function PolygonMaps(props) {
         console.log(data);
         setPostCodes(data.records.map((record) => ({ ...record })));
       });
+    fetch(process.env.REACT_APP_BASE_URL + "getAllKml")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setDisabledPostcodes(data.postcode.map((record) => ({ ...record })));
+      });
     if (postCodes.length > 0) {
       const promises = postCodes.map((postCode) =>
         axios.get(`${process.env.REACT_APP_BASE_URL}${postCode.name}`)
@@ -121,13 +129,14 @@ export default function PolygonMaps(props) {
         });
     }
   }, [postCodes.length]);
-
+  console.log("disabledPostcodes", disabledPostcodes);
   return (
     <div>
       <div className="App" style={{ minWidth: "100vw", minHeight: "100vh" }}>
         <Map
           key={getLastIndexID(selectedPostCodes)}
           selectedPostCodes={selectedPostCodes}
+          disabledPostcodes={disabledPostcodes}
           defaultCoordinates={getSelectedPostCode(selectedPostCodes)}
         />
         <PostCodes>
