@@ -63,14 +63,14 @@ export default function PolygonMaps(props) {
     return arrCoordinate[Math.floor(arrCoordinate.length / 2)];
   };
 
-  useEffect(() => {
-    console.log("getSelected", getSelectedPostCode(selectedPostCodes));
-  }, [selectedPostCodes.length]);
+  // useEffect(() => {
+  //   console.log("getSelected", getSelectedPostCode(selectedPostCodes));
+  // }, [selectedPostCodes.length]);
 
   let apiRequestLoop = (arrReq) => {
     let promiseArray = [];
     for (let i = 0; i <= arrReq.length; i++) {
-      let dataUrlLoop = process.env.REACT_BASE_URL + arrReq.name;
+      let dataUrlLoop = process.env.REACT_APP_BASE_URL + arrReq.name;
       promiseArray.push(
         fetch(dataUrlLoop)
           .then((res) => res.json())
@@ -81,7 +81,8 @@ export default function PolygonMaps(props) {
   };
   //   let coordinat
   useEffect(() => {
-    fetch(process.env.REACT_BASE_URL)
+    console.log("PROCEEESSS", process.env.REACT_APP_BASE_URL);
+    fetch(process.env.REACT_APP_BASE_URL + "all")
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
@@ -89,9 +90,7 @@ export default function PolygonMaps(props) {
       });
     if (postCodes.length > 0) {
       const promises = postCodes.map((postCode) =>
-        axios.get(
-          `${process.env.REACT_BASE_URL}${postCode.name}?maxRecords=1300`
-        )
+        axios.get(`${process.env.REACT_APP_BASE_URL}${postCode.name}`)
       );
       const promisesResolved = promises.map((promise) =>
         promise.catch((error) => ({ error }))
