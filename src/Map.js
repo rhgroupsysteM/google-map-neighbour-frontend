@@ -52,6 +52,7 @@ const MapWithAMarker = withScriptjs(
           ? props.defaultCoordinates
           : { lat: 51.47179, lng: -0.38309 }
       }
+      center={props.defaultCoordinates}
     >
       {props.selectedPostCodes.length > 0 &&
         props.selectedPostCodes.map((postCode) => (

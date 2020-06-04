@@ -3,7 +3,59 @@ import Map from "./Map";
 import PostCodes from "./PostCodes";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { Grid, Image, Button, Header, Modal } from "semantic-ui-react";
+import {
+  Grid,
+  Image,
+  Button,
+  Header,
+  Modal,
+  Dimmer,
+  Loader,
+  Segment,
+  Container,
+  Sidebar,
+  Menu,
+  Icon,
+  List,
+} from "semantic-ui-react";
+
+const VerticalSidebar = ({
+  animation,
+  direction,
+  visible,
+  enabledItems,
+  disabledItems,
+  setSelectedCoordinate,
+}) => {
+  function getMiddleCoordinate(itemCoordinates) {
+    return itemCoordinates[Math.floor(itemCoordinates.length / 2)];
+  }
+  return (
+    <Sidebar
+      as={Menu}
+      animation={animation}
+      direction={direction}
+      icon="labeled"
+      inverted
+      vertical
+      visible={visible}
+      width="thin"
+    >
+      {disabledItems.length > 0 && console.log("aaaa", disabledItems[0])}
+      <List>
+        {enabledItems.map((item) => (
+          <List.Item
+            onClick={() => {
+              setSelectedCoordinate(getMiddleCoordinate(item.coordinates));
+            }}
+          >
+            {item.properties.name}
+          </List.Item>
+        ))}
+      </List>
+    </Sidebar>
+  );
+};
 
 function PostCode(props) {
   let [isEnabled, toggleCoordinates] = useState(true);
@@ -58,7 +110,7 @@ export default function PolygonMaps(props) {
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        setPostCodes(data.records.map((record) => ({ ...record })));
+        setPostCodes(data.postcode.map((record) => ({ ...record })));
       });
     fetch(process.env.REACT_APP_BASE_URL + "getAllKml")
       .then((res) => res.json())
@@ -66,38 +118,38 @@ export default function PolygonMaps(props) {
         console.log(data);
         setDisabledPostcodes(data.postcode.map((record) => ({ ...record })));
       });
-    if (postCodes.length > 0) {
-      const promises = postCodes.map((postCode) =>
-        axios.get(`${process.env.REACT_APP_BASE_URL}${postCode.name}`)
-      );
-      const promisesResolved = promises.map((promise) =>
-        promise.catch((error) => ({ error }))
-      );
-      function checkFailed(then) {
-        return function (responses) {
-          const someFailed = responses.some((response) => response.error);
-          if (someFailed) {
-            throw responses;
-          }
-          return then(responses);
-        };
-      }
-      axios
-        .all(promisesResolved)
-        .then(
-          checkFailed(([someUrl, anotherUrl]) => {
-            console.log("SUCCESS", someUrl, anotherUrl);
-          })
-        )
-        .catch((arrErr) => {
-          console.log("FAIL", arrErr);
-          setSelectedPostCodes(
-            arrErr
-              .filter((res) => res.statusText === "OK")
-              .map((res) => ({ ...res.data.postcode }))
-          );
-        });
-    }
+    // if (postCodes.length > 0) {
+    //   const promises = postCodes.map((postCode) =>
+    //     axios.get(`${process.env.REACT_APP_BASE_URL}${postCode.name}`)
+    //   );
+    //   const promisesResolved = promises.map((promise) =>
+    //     promise.catch((error) => ({ error }))
+    //   );
+    //   function checkFailed(then) {
+    //     return function (responses) {
+    //       const someFailed = responses.some((response) => response.error);
+    //       if (someFailed) {
+    //         throw responses;
+    //       }
+    //       return then(responses);
+    //     };
+    //   }
+    //   axios
+    //     .all(promisesResolved)
+    //     .then(
+    //       checkFailed(([someUrl, anotherUrl]) => {
+    //         console.log("SUCCESS", someUrl, anotherUrl);
+    //       })
+    //     )
+    //     .catch((arrErr) => {
+    //       console.log("FAIL", arrErr);
+    //       setSelectedPostCodes(
+    //         arrErr
+    //           .filter((res) => res.statusText === "OK")
+    //           .map((res) => ({ ...res.data.postcode }))
+    //       );
+    //     });
+    // }
   }, [postCodes.length]);
   console.log("disabledPostcodes", disabledPostcodes);
   // let modalContent = (properties) => {
@@ -108,6 +160,12 @@ export default function PolygonMaps(props) {
     name: "",
     description: "",
   });
+  let [selectedCoordinate, setSelectedCoordinate] = useState({
+    lat: 51.47179,
+    lng: -0.38309,
+  });
+
+  let [focusedPostcode, setFocusedPostcode] = useState(null);
   let [modalOpen, setModalOpen] = useState(false);
 
   let handleOpen = () => setModalOpen(true);
@@ -115,17 +173,14 @@ export default function PolygonMaps(props) {
   let handleClose = () => setModalOpen(false);
 
   return (
-    <div>
+    <Container fluid>
       <Modal
         dimmer="blurring"
-        // trigger={<Button onClick={handleOpen}>Show Modal</Button>}
         open={modalOpen}
         onClose={handleClose}
         size="mini"
       >
-        {/* <Header icon="browser" /> */}
         <Modal.Content>
-          {/* <Image wrapped size="medium" src="/images/avatar/large/rachel.png" /> */}
           <Modal.Description>
             <Header>{selectedPostCode.name}</Header>
             <p>{selectedPostCode.description}</p>
@@ -137,44 +192,54 @@ export default function PolygonMaps(props) {
           </Button>
         </Modal.Actions>
       </Modal>
-      <div className="App" style={{ minWidth: "100vw", minHeight: "100vh" }}>
-        <Grid>
-          <Grid.Column>
-            {(() => {
-              if (postCodes.length > 0 && disabledPostcodes.length > 0) {
-                return (
-                  <Map
-                    key={getLastIndexID(selectedPostCodes)}
-                    selectedPostCodes={selectedPostCodes}
-                    disabledPostcodes={disabledPostcodes}
-                    setModalOpen={setModalOpen}
-                    setSelectedPostCode={setSelectedPostCode}
-                    defaultCoordinates={getSelectedPostCode(selectedPostCodes)}
-                  />
-                );
-              } else {
-                return (
-                  <Map
-                    key={getLastIndexID(selectedPostCodes)}
-                    selectedPostCodes={[]}
-                    disabledPostcodes={[]}
-                    defaultCoordinates={getSelectedPostCode(selectedPostCodes)}
-                  />
-                );
-              }
-            })()}
-          </Grid.Column>
-        </Grid>
-        {/* <PostCodes>
-          {postCodes.map((postCode) => (
-            <PostCode
-              {...postCode}
-              selectedPostCodes={selectedPostCodes}
-              setSelectedPostCodes={setSelectedPostCodes}
-            />
-          ))}
-        </PostCodes> */}
-      </div>
-    </div>
+      <Sidebar.Pushable as={Segment}>
+        <VerticalSidebar
+          animation={"slide out"}
+          direction={"left"}
+          visible={true}
+          enabledItems={postCodes.map((properties) => ({
+            coordinates: properties.coordinates,
+            properties: properties.properties,
+          }))}
+          setSelectedCoordinate={setSelectedCoordinate}
+          disabledItems={disabledPostcodes.map((properties) => ({
+            coordinates: properties.coordinates,
+            properties: properties.properties,
+          }))}
+        />
+        <Sidebar.Pusher>
+          <Grid>
+            <Grid.Column>
+              {(() => {
+                if (postCodes.length > 0 && disabledPostcodes.length > 0) {
+                  return (
+                    <Map
+                      key={getLastIndexID(postCodes)}
+                      selectedPostCodes={postCodes}
+                      disabledPostcodes={disabledPostcodes}
+                      setModalOpen={setModalOpen}
+                      setSelectedPostCode={setPostCodes}
+                      defaultCoordinates={selectedCoordinate}
+                    />
+                  );
+                } else {
+                  return (
+                    <Segment basic>
+                      <Loader active size="massive" dimmer />
+                      <Map
+                        key={getLastIndexID(postCodes)}
+                        selectedPostCodes={[]}
+                        disabledPostcodes={[]}
+                        defaultCoordinates={selectedCoordinate}
+                      />
+                    </Segment>
+                  );
+                }
+              })()}
+            </Grid.Column>
+          </Grid>
+        </Sidebar.Pusher>
+      </Sidebar.Pushable>
+    </Container>
   );
 }
