@@ -3,6 +3,7 @@ import Map from "./Map";
 import PostCodes from "./PostCodes";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { Grid, Image, Button, Header, Modal } from "semantic-ui-react";
 
 function PostCode(props) {
   let [isEnabled, toggleCoordinates] = useState(true);
@@ -24,17 +25,7 @@ function PostCode(props) {
       );
     }
   }, [isEnabled]);
-  return (
-    <li key={props.id}>
-      {props.name}
-      {/* <input
-        key={props.id}
-        checked={isEnabled}
-        type="checkbox"
-        onChange={(e) => toggleCoordinates(!isEnabled)}
-      /> */}
-    </li>
-  );
+  return <li key={props.id}>{props.name}</li>;
 }
 
 export default function PolygonMaps(props) {
@@ -61,27 +52,6 @@ export default function PolygonMaps(props) {
       ];
     }
   };
-  const getMiddleCoordinate = (arrCoordinate) => {
-    return arrCoordinate[Math.floor(arrCoordinate.length / 2)];
-  };
-
-  // useEffect(() => {
-  //   console.log("getSelected", getSelectedPostCode(selectedPostCodes));
-  // }, [selectedPostCodes.length]);
-
-  let apiRequestLoop = (arrReq) => {
-    let promiseArray = [];
-    for (let i = 0; i <= arrReq.length; i++) {
-      let dataUrlLoop = process.env.REACT_APP_BASE_URL + arrReq.name;
-      promiseArray.push(
-        fetch(dataUrlLoop)
-          .then((res) => res.json())
-          .then((data) => data.records)
-      );
-    }
-    return Promise.all(promiseArray);
-  };
-  //   let coordinat
   useEffect(() => {
     console.log("PROCEEESSS", process.env.REACT_APP_BASE_URL);
     fetch(process.env.REACT_APP_BASE_URL + "all")
@@ -130,16 +100,72 @@ export default function PolygonMaps(props) {
     }
   }, [postCodes.length]);
   console.log("disabledPostcodes", disabledPostcodes);
+  // let modalContent = (properties) => {
+
+  // }
+
+  let [selectedPostCode, setSelectedPostCode] = useState({
+    name: "",
+    description: "",
+  });
+  let [modalOpen, setModalOpen] = useState(false);
+
+  let handleOpen = () => setModalOpen(true);
+
+  let handleClose = () => setModalOpen(false);
+
   return (
     <div>
+      <Modal
+        dimmer="blurring"
+        // trigger={<Button onClick={handleOpen}>Show Modal</Button>}
+        open={modalOpen}
+        onClose={handleClose}
+        size="mini"
+      >
+        {/* <Header icon="browser" /> */}
+        <Modal.Content>
+          {/* <Image wrapped size="medium" src="/images/avatar/large/rachel.png" /> */}
+          <Modal.Description>
+            <Header>{selectedPostCode.name}</Header>
+            <p>{selectedPostCode.description}</p>
+          </Modal.Description>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button color="green" onClick={handleClose} inverted>
+            Okay
+          </Button>
+        </Modal.Actions>
+      </Modal>
       <div className="App" style={{ minWidth: "100vw", minHeight: "100vh" }}>
-        <Map
-          key={getLastIndexID(selectedPostCodes)}
-          selectedPostCodes={selectedPostCodes}
-          disabledPostcodes={disabledPostcodes}
-          defaultCoordinates={getSelectedPostCode(selectedPostCodes)}
-        />
-        <PostCodes>
+        <Grid>
+          <Grid.Column>
+            {(() => {
+              if (postCodes.length > 0 && disabledPostcodes.length > 0) {
+                return (
+                  <Map
+                    key={getLastIndexID(selectedPostCodes)}
+                    selectedPostCodes={selectedPostCodes}
+                    disabledPostcodes={disabledPostcodes}
+                    setModalOpen={setModalOpen}
+                    setSelectedPostCode={setSelectedPostCode}
+                    defaultCoordinates={getSelectedPostCode(selectedPostCodes)}
+                  />
+                );
+              } else {
+                return (
+                  <Map
+                    key={getLastIndexID(selectedPostCodes)}
+                    selectedPostCodes={[]}
+                    disabledPostcodes={[]}
+                    defaultCoordinates={getSelectedPostCode(selectedPostCodes)}
+                  />
+                );
+              }
+            })()}
+          </Grid.Column>
+        </Grid>
+        {/* <PostCodes>
           {postCodes.map((postCode) => (
             <PostCode
               {...postCode}
@@ -147,7 +173,7 @@ export default function PolygonMaps(props) {
               setSelectedPostCodes={setSelectedPostCodes}
             />
           ))}
-        </PostCodes>
+        </PostCodes> */}
       </div>
     </div>
   );

@@ -53,31 +53,43 @@ const MapWithAMarker = withScriptjs(
           : { lat: 51.47179, lng: -0.38309 }
       }
     >
-      {props.selectedPostCodes.length > 0 && (
-        <Polygon
-          // key={postCode.properties.name}
-          paths={props.selectedPostCodes}
-          options={{
-            fillColor: "#66ff66",
-            fillOpacity: 0.4,
-            strokeColor: "#66ff66",
-            strokeOpacity: 1,
-            strokeWeight: 1,
-          }}
-        />
-      )}
-      {props.disabledPostcodes.length > 0 && (
-        <Polygon
-          paths={props.disabledPostcodes}
-          options={{
-            fillColor: "#f02137",
-            fillOpacity: 0.4,
-            strokeColor: "#f02137",
-            strokeOpacity: 1,
-            strokeWeight: 1,
-          }}
-        />
-      )}
+      {props.selectedPostCodes.length > 0 &&
+        props.selectedPostCodes.map((postCode) => (
+          <Polygon
+            // key={postCode.properties.name}
+            paths={postCode.coordinates}
+            options={{
+              fillColor: "#66ff66",
+              fillOpacity: 0.4,
+              strokeColor: "#66ff66",
+              strokeOpacity: 1,
+              strokeWeight: 1,
+            }}
+            onClick={(e) => {
+              console.log("click polygon", postCode.properties);
+              props.setSelectedPostCode(postCode.properties);
+              props.setModalOpen(true);
+            }}
+          />
+        ))}
+      {props.disabledPostcodes.length > 0 &&
+        props.disabledPostcodes.map((postCode) => (
+          <Polygon
+            path={postCode.coordinates}
+            options={{
+              fillColor: "#f02137",
+              fillOpacity: 0.4,
+              strokeColor: "#f02137",
+              strokeOpacity: 1,
+              strokeWeight: 1,
+            }}
+            onClick={(e) => {
+              console.log("click polygon", postCode.properties);
+              props.setSelectedPostCode(postCode.properties);
+              props.setModalOpen(true);
+            }}
+          />
+        ))}
       {/* <KmlLayer
         url="https://github.com/missinglink/uk-postcode-polygons/blob/master/kml/AB.kml"
         options={{ preserveViewport: true }}
@@ -91,20 +103,26 @@ const SimpleMap = ({
   key,
   defaultCoordinates,
   disabledPostcodes,
+  setModalOpen,
+  setSelectedPostCode,
 }) => (
   <MapWithAMarker
     key={key}
     googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyBPUiSGYIljWpEJ0iUAJbusbdPly-U4Z6Y&v=3.exp&libraries=geometry,drawing,places"
     loadingElement={<div style={{ height: `100%` }} />}
-    containerElement={<div style={{ height: `800px` }} />}
+    containerElement={<div style={{ height: `100vh` }} />}
     mapElement={<div style={{ height: `100%` }} />}
-    selectedPostCodes={selectedPostCodes.map(
-      (properties) => properties.coordinates
-    )}
-    disabledPostcodes={disabledPostcodes.map(
-      (postCode) => postCode.coordinates
-    )}
+    selectedPostCodes={selectedPostCodes.map((properties) => ({
+      coordinates: properties.coordinates,
+      properties: properties.properties,
+    }))}
+    disabledPostcodes={disabledPostcodes.map((postCode) => ({
+      coordinates: postCode.coordinates,
+      properties: postCode.properties,
+    }))}
     defaultCoordinates={defaultCoordinates}
+    setModalOpen={setModalOpen}
+    setSelectedPostCode={setSelectedPostCode}
   />
 );
 //AIzaSyBPUiSGYIljWpEJ0iUAJbusbdPly-U4Z6Y
