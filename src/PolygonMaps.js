@@ -150,7 +150,7 @@ export default function PolygonMaps(props) {
     //       );
     //     });
     // }
-  }, [postCodes.length]);
+  }, []);
   console.log("disabledPostcodes", disabledPostcodes);
   // let modalContent = (properties) => {
 
